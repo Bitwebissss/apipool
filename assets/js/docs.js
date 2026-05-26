@@ -6,7 +6,7 @@
 
   /* ── CONFIG ─────────────────────────────────── */
   const cfg = {
-    baseUrl: localStorage.getItem('mc_base_url') || 'http://localhost:4000',
+    baseUrl: localStorage.getItem('mc_base_url') || 'https://pool.bitwebcore.net',
     poolId:  localStorage.getItem('mc_pool_id')  || '',
     theme:   localStorage.getItem('mc_theme')    || 'auto',
   };
