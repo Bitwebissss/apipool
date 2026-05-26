@@ -670,7 +670,7 @@
     ni.className = 'fa-solid fa-circle-info';
     note.appendChild(ni);
     const nt = document.createElement('span');
-    setText(nt, 'This uses native WebSocket, not socket.io protocol. Connect to: ws://your-pool-host:4000/notifications');
+    setText(nt, 'This uses native WebSocket, not socket.io protocol. Connect to: ws://pool.bitwebcore.net/notifications');
     note.appendChild(nt);
     info.appendChild(note);
 
@@ -783,7 +783,7 @@
     const pre = document.createElement('pre');
     pre.className = 'ep-example';
     const codeEx =
-`const ws = new WebSocket('ws://your-pool-host:4000/notifications');
+`const ws = new WebSocket('ws://pool.bitwebcore.net/notifications');
 
 ws.onopen = () => console.log('connected');
 
