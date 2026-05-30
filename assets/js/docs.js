@@ -641,7 +641,8 @@
     { name: 'BlockUnlockProgress',   icon: '🔄', desc: 'Confirmation progress update for a pending block.' },
     { name: 'NewChainHeight',        icon: '📦', desc: 'A new block appeared on the network chain.' },
     { name: 'Payment',               icon: '💸', desc: 'A payment batch was processed and sent.' },
-    { name: 'HashrateUpdated',       icon: '📊', desc: 'Periodic pool hashrate snapshot.' },
+    { name: 'HashrateUpdated',       icon: '📊', desc: 'Per-miner hashrate snapshot (miner-level only; pool-level stats moved to PoolStatsUpdated).' },
+    { name: 'PoolStatsUpdated',      icon: '🏊', desc: 'Pool-level stats snapshot: hashrate, connected miners, shares/sec, network difficulty, block height, pool effort, last block time.' },
   ];
 
   function renderWsSection() {
@@ -790,14 +791,56 @@ ws.onopen = () => console.log('connected');
 ws.onmessage = ({ data }) => {
   const msg = JSON.parse(data);
   switch (msg.type) {
+
+    case 'PoolStatsUpdated':
+      // Pool-level periodic snapshot (replaces pool-level HashrateUpdated)
+      // msg.poolId, msg.poolHashrate, msg.connectedMiners, msg.sharesPerSecond
+      // msg.networkHashrate, msg.networkDifficulty, msg.blockHeight
+      // msg.lastNetworkBlockTime, msg.nodeVersion, msg.connectedPeers
+      // msg.poolEffort (nullable), msg.lastPoolBlockTime (nullable)
+      console.log('Pool stats', msg.poolId, msg.poolHashrate, 'effort:', msg.poolEffort);
+      break;
+
     case 'BlockFound':
+      // msg.poolId, msg.blockHeight, msg.symbol, msg.name
+      // msg.miner, msg.minerExplorerLink, msg.source
       console.log('Block found!', msg.poolId, msg.blockHeight);
       break;
-    case 'Payment':
-      console.log('Payment sent', msg.address, msg.amount);
+
+    case 'BlockUnlocked':
+      // msg.poolId, msg.blockHeight, msg.symbol, msg.name
+      // msg.status ('confirmed' | 'orphaned'), msg.blockType, msg.blockHash
+      // msg.reward, msg.effort (nullable), msg.miner, msg.explorerLink, msg.minerExplorerLink
+      // msg.totalBlocks (nullable), msg.totalConfirmedBlocks (nullable)
+      // msg.totalPendingBlocks (nullable), msg.blocks24h (nullable)
+      // msg.blockReward (nullable)
+      console.log('Block unlocked', msg.status, 'reward:', msg.reward,
+        'confirmed total:', msg.totalConfirmedBlocks);
       break;
+
+    case 'BlockUnlockProgress':
+      // msg.poolId, msg.blockHeight, msg.symbol, msg.name
+      // msg.progress (0..1), msg.effort (nullable)
+      console.log('Confirm progress', msg.blockHeight, (msg.progress * 100).toFixed(1) + '%');
+      break;
+
+    case 'Payment':
+      // msg.poolId, msg.symbol, msg.amount, msg.recipientsCount
+      // msg.txIds[], msg.txExplorerLinks[], msg.txFee (nullable)
+      // msg.totalPaid (nullable) — cumulative pool total paid
+      // msg.error (null on success)
+      console.log('Payment sent', msg.poolId, msg.amount, 'total ever paid:', msg.totalPaid);
+      break;
+
     case 'HashrateUpdated':
-      console.log('Hashrate', msg.poolId, msg.poolHashrate);
+      // Per-miner hashrate (pool-level stats now in PoolStatsUpdated)
+      // msg.poolId, msg.miner, msg.poolHashrate
+      console.log('Miner hashrate', msg.miner, msg.poolHashrate);
+      break;
+
+    case 'NewChainHeight':
+      // msg.poolId, msg.blockHeight, msg.symbol, msg.name
+      console.log('New chain height', msg.poolId, msg.blockHeight);
       break;
   }
 };
