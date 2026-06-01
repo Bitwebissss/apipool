@@ -246,7 +246,6 @@
           method: 'GET',
           path: '/api/v2/pools/{poolId}/miners/{address}/blocks',
           summary: 'Miner blocks (v2 — paginated)',
-          desc: 'Same as v1 with pageCount and itemCount metadata.',
           v2: true,
           params: [
             { name: 'address',  type: 'path',  inputType: 'text',   placeholder: 'web1p...', hint: '', required: true },
@@ -361,6 +360,11 @@
             { name: 'ipAddress',        type: 'body', inputType: 'text',   placeholder: '1.2.3.4', hint: 'Your current IP address', required: true },
             { name: 'paymentThreshold', type: 'body', inputType: 'number', placeholder: '0.01',    hint: 'Min payout amount (must be ≥ pool minimum)', required: true },
           ],
+          // ADDED: body builder function
+          buildBody: (vars) => ({
+            ipAddress: vars.ipAddress || '',
+            settings: { paymentThreshold: parseFloat(vars.paymentThreshold) || 0 }
+          }),
         },
       ],
     },
@@ -634,14 +638,20 @@
     setText(d, 'The pool exposes a raw WebSocket relay at /notifications. Events are JSON messages with a "type" field matching the event names below (all lowercase). No socket.io protocol is used — connect with native WebSocket.');
     info.appendChild(d);
 
-    // Note
+    // Note — FIXED: dynamic WS URL
     const note = document.createElement('div');
     note.className = 'mc-note';
     const ni = document.createElement('i');
     ni.className = 'fa-solid fa-circle-info';
     note.appendChild(ni);
     const nt = document.createElement('span');
-    setText(nt, 'Native WebSocket only — not socket.io. Connect to: ws://pool.bitwebcore.net/notifications');
+    let wsNoteUrl = 'ws://pool.bitwebcore.net/notifications';
+    try {
+      const u = new URL(cfg.baseUrl);
+      const wsProtocol = u.protocol === 'https:' ? 'wss:' : 'ws:';
+      wsNoteUrl = wsProtocol + '//' + u.host + '/notifications';
+    } catch (e) {}
+    setText(nt, 'Native WebSocket only — not socket.io. Connect to: ' + wsNoteUrl);
     note.appendChild(nt);
     info.appendChild(note);
 
@@ -694,8 +704,9 @@
     const log = document.createElement('div');
     log.className = 'ws-log';
     log.id = 'ws-log';
+    // FIXED: placeholder with data attribute
     const empty = document.createElement('span');
-    empty.style.color = 'var(--text-muted)';
+    empty.dataset.placeholder = 'true';
     setText(empty, 'Connect to start receiving events...');
     log.appendChild(empty);
     info.appendChild(log);
@@ -868,7 +879,7 @@ ws.onclose = () => console.log('disconnected');`;
         wsLogEntry('sys', 'Disconnected (code ' + e.code + ')');
         document.getElementById('ws-connect').disabled = false;
         document.getElementById('ws-disconnect').disabled = true;
-        wsConn = null;
+        wsConn = null;  // ONLY here we nullify
       };
     } catch (err) {
       wsLogEntry('sys', 'Failed: ' + err.message);
@@ -876,7 +887,10 @@ ws.onclose = () => console.log('disconnected');`;
   }
 
   function wsDisconnect() {
-    if (wsConn) { wsConn.close(); wsConn = null; }
+    // FIXED: do NOT null wsConn here; let onclose handle it.
+    if (wsConn) {
+      wsConn.close();
+    }
   }
 
   function wsSetStatus(cls, text) {
@@ -893,7 +907,10 @@ ws.onclose = () => console.log('disconnected');`;
   function wsLogEntry(type, msg) {
     const log = document.getElementById('ws-log');
     if (!log) return;
-    if (log.childElementCount === 1 && log.firstChild?.style?.color) log.innerHTML = '';
+    // FIXED: check placeholder using data attribute
+    if (log.childElementCount === 1 && log.firstElementChild?.dataset?.placeholder === 'true') {
+      log.innerHTML = '';
+    }
 
     const now = new Date().toTimeString().slice(0, 8);
     const row = document.createElement('div');
@@ -970,12 +987,16 @@ ws.onclose = () => console.log('disconnected');`;
 
     let body = null;
     if (ep.method === 'POST' && Object.keys(bodyVars).length) {
-      body = {};
-      if (bodyVars.paymentThreshold !== undefined) {
-        body.ipAddress = bodyVars.ipAddress || '';
-        body.settings  = { paymentThreshold: parseFloat(bodyVars.paymentThreshold) || 0 };
+      // FIXED: use buildBody if defined, else fallback to bodyVars
+      if (typeof ep.buildBody === 'function') {
+        body = ep.buildBody(bodyVars);
       } else {
-        Object.assign(body, bodyVars);
+        // generic fallback (simple object copy)
+        body = { ...bodyVars };
+        // special numeric conversion for any threshold-like param
+        if (bodyVars.paymentThreshold !== undefined) {
+          body.paymentThreshold = parseFloat(bodyVars.paymentThreshold) || 0;
+        }
       }
     }
 
