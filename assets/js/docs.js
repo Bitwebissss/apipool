@@ -14,7 +14,7 @@
   /* ── THEME ──────────────────────────────────── */
   const Theme = (() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const icons = { light: 'fa-regular fa-sun', dark: 'fa-regular fa-moon', auto: 'fa-solid fa-circle-half-stroke' };
+    const icons  = { light: 'fa-regular fa-sun', dark: 'fa-regular fa-moon', auto: 'fa-solid fa-circle-half-stroke' };
     const labels = { light: 'Light', dark: 'Dark', auto: 'Auto' };
 
     function apply(t) {
@@ -65,10 +65,10 @@
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;');
     return escaped.replace(
-      /("(?:\\u[0-9a-fA-F]{4}|\\[^u]|[^\\"])*"(?:\s*:)?|\b(?:true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g,
+      /(\"(?:\\u[0-9a-fA-F]{4}|\\[^u]|[^\\"])*\"(?:\s*:)?|\b(?:true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g,
       (m) => {
         let cls = 'json-num';
-        if (/^"/.test(m)) {
+        if (/^\"/.test(m)) {
           cls = /:$/.test(m) ? 'json-key' : 'json-str';
         } else if (/true|false/.test(m)) {
           cls = 'json-bool';
@@ -135,53 +135,26 @@
         {
           id: 'listPools',
           method: 'GET',
-          path: '/api/pools',
-          summary: 'List all pools',
-          desc: 'Returns all enabled pools with configuration, network stats, payout config, top miners, and live hashrate.',
-          params: [
-            { name: 'topMinersRange', type: 'query', inputType: 'number', placeholder: '24', hint: 'Hours back for top miners list (default 24)' },
-          ],
+          path: '/api/pools-list',
+          summary: 'List pools (minimal)',
+          desc: 'Returns all enabled pools as a minimal list: id and coin info only. Use this to populate a pool selector. Full stats and config are at GET /api/pools/{poolId}.',
+          params: [],
         },
         {
           id: 'getPool',
           method: 'GET',
           path: '/api/pools/{poolId}',
           summary: 'Pool info',
-          desc: 'Same as /api/pools but returns a single pool object. Uses the currently selected Pool ID from the toolbar.',
-          params: [
-            { name: 'topMinersRange', type: 'query', inputType: 'number', placeholder: '24', hint: 'Hours back for top miners list' },
-          ],
+          desc: 'Returns full pool info: config, payout settings, live stats (hashrate, connected miners, shares/sec, network difficulty), block counts, last block time, last payment time, workers online/offline, and pool effort. Cached for ~60 s.',
+          params: [],
         },
         {
           id: 'getPoolPerformance',
           method: 'GET',
           path: '/api/pools/{poolId}/performance',
           summary: 'Pool hashrate history',
-          desc: 'Historical hashrate and share rate samples for the pool, used to draw performance charts.',
-          params: [
-            {
-              name: 'r', type: 'query', inputType: 'select', placeholder: '',
-              options: [{ value: '', label: '— range —' }, { value: 'hour', label: 'Hour' }, { value: 'day', label: 'Day (default)' }, { value: 'month', label: 'Month' }],
-              hint: 'Sample range',
-            },
-            {
-              name: 'i', type: 'query', inputType: 'select', placeholder: '',
-              options: [{ value: '', label: '— interval —' }, { value: 'minute', label: 'Minute' }, { value: 'hour', label: 'Hour (default)' }, { value: 'day', label: 'Day' }],
-              hint: 'Sample interval',
-            },
-          ],
-        },
-        {
-          id: 'listMiners',
-          method: 'GET',
-          path: '/api/pools/{poolId}/miners',
-          summary: 'Top miners by hashrate',
-          desc: 'Paginated list of miners sorted by hashrate descending within the given time range.',
-          params: [
-            { name: 'page',           type: 'query', inputType: 'number', placeholder: '0',  hint: 'Page number (0-indexed)' },
-            { name: 'pageSize',       type: 'query', inputType: 'number', placeholder: '15', hint: 'Items per page (default 15)' },
-            { name: 'topMinersRange', type: 'query', inputType: 'number', placeholder: '24', hint: 'Hours back (default 24)' },
-          ],
+          desc: 'Returns the last 24 hours of pool performance in hourly buckets. Each sample includes poolHashrate, connectedMiners, sharesPerSecond, networkHashrate, networkDifficulty.',
+          params: [],
         },
       ],
     },
@@ -217,35 +190,7 @@
           method: 'GET',
           path: '/api/blocks',
           summary: 'All blocks (cluster-wide)',
-          desc: 'Returns blocks across all pools in the cluster. Paginated.',
-          params: [
-            { name: 'page',     type: 'query', inputType: 'number', placeholder: '0',  hint: '' },
-            { name: 'pageSize', type: 'query', inputType: 'number', placeholder: '15', hint: '' },
-          ],
-        },
-      ],
-    },
-    {
-      group: 'Payments',
-      items: [
-        {
-          id: 'getPayments',
-          method: 'GET',
-          path: '/api/pools/{poolId}/payments',
-          summary: 'Pool payments',
-          desc: 'Paginated list of all payments made by this pool, newest first. Each record includes address, amount, tx hash, and explorer link.',
-          params: [
-            { name: 'page',     type: 'query', inputType: 'number', placeholder: '0',  hint: '' },
-            { name: 'pageSize', type: 'query', inputType: 'number', placeholder: '15', hint: '' },
-          ],
-        },
-        {
-          id: 'getPaymentsV2',
-          method: 'GET',
-          path: '/api/v2/pools/{poolId}/payments',
-          summary: 'Pool payments (v2 — paginated)',
-          desc: 'Same as v1 with added pageCount and itemCount for pagination controls.',
-          v2: true,
+          desc: 'Returns blocks across all enabled pools in the cluster. Paginated.',
           params: [
             { name: 'page',     type: 'query', inputType: 'number', placeholder: '0',  hint: '' },
             { name: 'pageSize', type: 'query', inputType: 'number', placeholder: '15', hint: '' },
@@ -264,14 +209,9 @@
           method: 'GET',
           path: '/api/pools/{poolId}/miners/{address}',
           summary: 'Miner overview',
-          desc: 'Returns miner stats: pending balance, total paid, pending shares, effort, last payment, workers online/offline, and current performance samples.',
+          desc: 'Returns miner stats: pending balance, total paid, pending shares, effort since last block, last payment timestamp and link, workers online/offline, and 24-hour hourly performance samples per worker.',
           params: [
-            { name: 'address',  type: 'path',  inputType: 'text', placeholder: 'web1p...', hint: 'Miner wallet address', required: true },
-            {
-              name: 'perfMode', type: 'query', inputType: 'select', placeholder: '',
-              options: [{ value: '', label: '— perf range —' }, { value: 'hour', label: 'Hour' }, { value: 'day', label: 'Day (default)' }, { value: 'month', label: 'Month' }],
-              hint: 'Performance sample range',
-            },
+            { name: 'address', type: 'path', inputType: 'text', placeholder: 'web1p...', hint: 'Miner wallet address', required: true },
           ],
         },
         {
@@ -279,14 +219,9 @@
           method: 'GET',
           path: '/api/pools/{poolId}/miners/{address}/performance',
           summary: 'Worker performance history',
-          desc: 'Hashrate and share rate samples per worker within the given time range. Used for per-worker hashrate charts.',
+          desc: 'Returns the last 24 hours of per-worker hashrate and share rate in hourly buckets. Used to draw per-worker hashrate charts.',
           params: [
             { name: 'address', type: 'path', inputType: 'text', placeholder: 'web1p...', hint: '', required: true },
-            {
-              name: 'mode', type: 'query', inputType: 'select', placeholder: '',
-              options: [{ value: '', label: '— range —' }, { value: 'hour', label: 'Hour' }, { value: 'day', label: 'Day (default)' }, { value: 'month', label: 'Month' }],
-              hint: 'Sample range',
-            },
           ],
         },
       ],
@@ -634,15 +569,62 @@
   /* ── WEBSOCKET SECTION ──────────────────────── */
   let wsConn = null;
 
+  // WS event type values are the enum name lowercased (e.g. WsNotificationType.CycleStats → "cyclestats")
   const WS_EVENTS = [
-    { name: 'Greeting',              icon: '👋', desc: 'Sent on connect. Confirms relay is active.' },
-    { name: 'BlockFound',            icon: '⛏️', desc: 'A new block was found by any miner.' },
-    { name: 'BlockUnlocked',         icon: '✅', desc: 'A pending block was confirmed / unlocked.' },
-    { name: 'BlockUnlockProgress',   icon: '🔄', desc: 'Confirmation progress update for a pending block.' },
-    { name: 'NewChainHeight',        icon: '📦', desc: 'A new block appeared on the network chain.' },
-    { name: 'Payment',               icon: '💸', desc: 'A payment batch was processed and sent.' },
-    { name: 'HashrateUpdated',       icon: '📊', desc: 'Per-miner hashrate snapshot (miner-level only; pool-level stats moved to PoolStatsUpdated).' },
-    { name: 'PoolStatsUpdated',      icon: '🏊', desc: 'Pool-level stats snapshot: hashrate, connected miners, shares/sec, network difficulty, block height, pool effort, last block time.' },
+    {
+      name: 'greeting',
+      icon: '👋',
+      desc: 'Sent on connect. Confirms relay is active.',
+      fields: 'message',
+    },
+    {
+      name: 'blockfound',
+      icon: '⛏️',
+      desc: 'A new block was found by any pool miner.',
+      fields: 'poolId, blockHeight, symbol, name, miner, minerExplorerLink, source',
+    },
+    {
+      name: 'blockunlocked',
+      icon: '✅',
+      desc: 'A pending block was confirmed or orphaned.',
+      fields: 'poolId, blockHeight, symbol, name, status ("confirmed"|"orphaned"), blockType, blockHash, reward, effort?, miner, explorerLink, minerExplorerLink, totalBlocks?, totalConfirmedBlocks?, totalPendingBlocks?, totalOrphanedBlocks?, blocks24h?, blockReward?',
+    },
+    {
+      name: 'blockunlockprogress',
+      icon: '🔄',
+      desc: 'Confirmation progress update for a pending block.',
+      fields: 'poolId, blockHeight, symbol, name, progress (0..1), effort?',
+    },
+    {
+      name: 'newchainheight',
+      icon: '📦',
+      desc: 'A new block appeared on the network chain.',
+      fields: 'poolId, blockHeight, symbol, name, networkBlockHeight',
+    },
+    {
+      name: 'payment',
+      icon: '💸',
+      desc: 'A payment batch was processed and sent.',
+      fields: 'poolId, symbol, amount, recipientsCount, txIds[], txExplorerLinks[], txFee?, totalPaid?, error',
+    },
+    {
+      name: 'chainheightstats',
+      icon: '📡',
+      desc: 'Network stats snapshot sent on every new chain height. Carries block counters and network metrics.',
+      fields: 'poolId, networkHashrate, networkDifficulty?, blockHeight, networkBlockHeight, lastNetworkBlockTime?, totalConfirmedBlocks?, totalPendingBlocks?, totalOrphanedBlocks?',
+    },
+    {
+      name: 'blockfoundstats',
+      icon: '🏆',
+      desc: 'Extended stats snapshot sent when the pool finds a block. Same as chainheightstats plus pool block counters.',
+      fields: 'poolId, networkHashrate, networkDifficulty?, blockHeight, networkBlockHeight, lastNetworkBlockTime?, lastPoolBlockTime?, blocks24h?, totalBlocks?, totalConfirmedBlocks?, totalPendingBlocks?, totalOrphanedBlocks?',
+    },
+    {
+      name: 'cyclestats',
+      icon: '📊',
+      desc: 'Pool performance snapshot sent on every stats cycle (≈ every 2 min). Use this for live pool hashrate and miner count displays.',
+      fields: 'poolId, poolHashrate, connectedMiners, sharesPerSecond, connectedPeers?, poolEffort?',
+    },
   ];
 
   function renderWsSection() {
@@ -661,7 +643,7 @@
     info.appendChild(t);
     const d = document.createElement('p');
     d.className = 'ws-desc';
-    setText(d, 'The pool exposes a raw WebSocket relay at /notifications. Events are JSON messages with a "type" field matching the event names below. No socket.io protocol is used — connect with native WebSocket.');
+    setText(d, 'The pool exposes a raw WebSocket relay at /notifications. Events are JSON messages with a "type" field matching the event names below (all lowercase). No socket.io protocol is used — connect with native WebSocket.');
     info.appendChild(d);
 
     // Note
@@ -671,7 +653,7 @@
     ni.className = 'fa-solid fa-circle-info';
     note.appendChild(ni);
     const nt = document.createElement('span');
-    setText(nt, 'This uses native WebSocket, not socket.io protocol. Connect to: ws://pool.bitwebcore.net/notifications');
+    setText(nt, 'Native WebSocket only — not socket.io. Connect to: ws://pool.bitwebcore.net/notifications');
     note.appendChild(nt);
     info.appendChild(note);
 
@@ -744,7 +726,7 @@
     evCard.appendChild(et);
     const ed = document.createElement('p');
     ed.className = 'ws-desc';
-    setText(ed, 'Each WebSocket message is a JSON object: { "type": "EventName", ... }. Field names below the event type describe the payload.');
+    setText(ed, 'Each WebSocket message is a JSON object: { "type": "eventname", ... }. The type field is always lowercase. Fields marked ? are nullable.');
     evCard.appendChild(ed);
 
     const grid = document.createElement('div');
@@ -765,6 +747,12 @@
       setText(desc2, ev.desc);
       info2.appendChild(name);
       info2.appendChild(desc2);
+      if (ev.fields) {
+        const fields = document.createElement('div');
+        fields.className = 'ws-event-fields';
+        setText(fields, ev.fields);
+        info2.appendChild(fields);
+      }
       chip.appendChild(info2);
       grid.appendChild(chip);
     });
@@ -792,54 +780,68 @@ ws.onmessage = ({ data }) => {
   const msg = JSON.parse(data);
   switch (msg.type) {
 
-    case 'PoolStatsUpdated':
-      // Pool-level periodic snapshot (replaces pool-level HashrateUpdated)
+    case 'cyclestats':
+      // Sent every ~2 min — use for live pool hashrate / miner count.
       // msg.poolId, msg.poolHashrate, msg.connectedMiners, msg.sharesPerSecond
-      // msg.networkHashrate, msg.networkDifficulty, msg.blockHeight
-      // msg.lastNetworkBlockTime, msg.nodeVersion, msg.connectedPeers
-      // msg.poolEffort (nullable), msg.lastPoolBlockTime (nullable)
+      // msg.connectedPeers (nullable), msg.poolEffort (nullable)
       console.log('Pool stats', msg.poolId, msg.poolHashrate, 'effort:', msg.poolEffort);
       break;
 
-    case 'BlockFound':
-      // msg.poolId, msg.blockHeight, msg.symbol, msg.name
-      // msg.miner, msg.minerExplorerLink, msg.source
-      console.log('Block found!', msg.poolId, msg.blockHeight);
+    case 'chainheightstats':
+      // Sent on every new network block — network metrics snapshot.
+      // msg.poolId, msg.networkHashrate, msg.networkDifficulty (nullable)
+      // msg.blockHeight, msg.networkBlockHeight, msg.lastNetworkBlockTime (nullable)
+      // msg.totalConfirmedBlocks (nullable), msg.totalPendingBlocks (nullable)
+      // msg.totalOrphanedBlocks (nullable)
+      console.log('Chain height', msg.poolId, msg.blockHeight);
       break;
 
-    case 'BlockUnlocked':
+    case 'blockfound':
+      // Pool found a block.
+      // msg.poolId, msg.blockHeight, msg.symbol, msg.name
+      // msg.miner, msg.minerExplorerLink, msg.source
+      console.log('Block found!', msg.poolId, msg.blockHeight, msg.miner);
+      break;
+
+    case 'blockfoundstats':
+      // Extended stats snapshot sent alongside blockfound — pool block counters.
+      // msg.poolId, msg.networkHashrate, msg.networkDifficulty (nullable)
+      // msg.blockHeight, msg.networkBlockHeight, msg.lastNetworkBlockTime (nullable)
+      // msg.lastPoolBlockTime (nullable), msg.blocks24h (nullable)
+      // msg.totalBlocks (nullable), msg.totalConfirmedBlocks (nullable)
+      // msg.totalPendingBlocks (nullable), msg.totalOrphanedBlocks (nullable)
+      console.log('Block found stats', msg.totalConfirmedBlocks);
+      break;
+
+    case 'blockunlocked':
+      // A pending block was confirmed or orphaned.
       // msg.poolId, msg.blockHeight, msg.symbol, msg.name
       // msg.status ('confirmed' | 'orphaned'), msg.blockType, msg.blockHash
       // msg.reward, msg.effort (nullable), msg.miner, msg.explorerLink, msg.minerExplorerLink
       // msg.totalBlocks (nullable), msg.totalConfirmedBlocks (nullable)
-      // msg.totalPendingBlocks (nullable), msg.blocks24h (nullable)
-      // msg.blockReward (nullable)
-      console.log('Block unlocked', msg.status, 'reward:', msg.reward,
-        'confirmed total:', msg.totalConfirmedBlocks);
+      // msg.totalPendingBlocks (nullable), msg.totalOrphanedBlocks (nullable)
+      // msg.blocks24h (nullable), msg.blockReward (nullable)
+      console.log('Block unlocked', msg.status, 'reward:', msg.reward);
       break;
 
-    case 'BlockUnlockProgress':
+    case 'blockunlockprogress':
+      // Confirmation progress update for a pending block.
       // msg.poolId, msg.blockHeight, msg.symbol, msg.name
       // msg.progress (0..1), msg.effort (nullable)
       console.log('Confirm progress', msg.blockHeight, (msg.progress * 100).toFixed(1) + '%');
       break;
 
-    case 'Payment':
+    case 'payment':
+      // A payment batch was sent.
       // msg.poolId, msg.symbol, msg.amount, msg.recipientsCount
       // msg.txIds[], msg.txExplorerLinks[], msg.txFee (nullable)
-      // msg.totalPaid (nullable) — cumulative pool total paid
-      // msg.error (null on success)
+      // msg.totalPaid (nullable), msg.error (null on success)
       console.log('Payment sent', msg.poolId, msg.amount, 'total ever paid:', msg.totalPaid);
       break;
 
-    case 'HashrateUpdated':
-      // Per-miner hashrate (pool-level stats now in PoolStatsUpdated)
-      // msg.poolId, msg.miner, msg.poolHashrate
-      console.log('Miner hashrate', msg.miner, msg.poolHashrate);
-      break;
-
-    case 'NewChainHeight':
-      // msg.poolId, msg.blockHeight, msg.symbol, msg.name
+    case 'newchainheight':
+      // New block appeared on the network (before pool stats update).
+      // msg.poolId, msg.blockHeight, msg.symbol, msg.name, msg.networkBlockHeight
       console.log('New chain height', msg.poolId, msg.blockHeight);
       break;
   }
@@ -971,7 +973,6 @@ ws.onclose = () => console.log('disconnected');`;
 
   /* ── RUN REQUEST ────────────────────────────── */
   async function runEndpoint(epId) {
-    // find endpoint def
     const allEps = [...POOL_ENDPOINTS, ...MINER_ENDPOINTS].flatMap((g) => g.items);
     const ep = allEps.find((e) => e.id === epId);
     if (!ep) return;
@@ -983,10 +984,8 @@ ws.onclose = () => console.log('disconnected');`;
     const metaEl = card.querySelector('[data-resp-meta="' + epId + '"]');
     const bodyEl = card.querySelector('[data-resp-body="' + epId + '"]');
 
-    // collect params
     const { url, bodyVars } = resolveEndpoint(ep, card);
 
-    // button spinner
     runBtn.disabled = true;
     runBtn.innerHTML = '';
     const sp = document.createElement('span');
@@ -994,11 +993,9 @@ ws.onclose = () => console.log('disconnected');`;
     runBtn.appendChild(sp);
     runBtn.appendChild(document.createTextNode(' Running…'));
 
-    // build body for POST
     let body = null;
     if (ep.method === 'POST' && Object.keys(bodyVars).length) {
       body = {};
-      // merge paymentThreshold into settings sub-object per API spec
       if (bodyVars.paymentThreshold !== undefined) {
         body.ipAddress = bodyVars.ipAddress || '';
         body.settings  = { paymentThreshold: parseFloat(bodyVars.paymentThreshold) || 0 };
@@ -1010,7 +1007,6 @@ ws.onclose = () => console.log('disconnected');`;
     try {
       const res = await apiRequest(ep.method, url, body);
 
-      // meta
       metaEl.innerHTML = '';
       const statusSpan = document.createElement('span');
       statusSpan.className = res.ok ? 'ep-status-ok' : 'ep-status-err';
@@ -1025,11 +1021,10 @@ ws.onclose = () => console.log('disconnected');`;
       metaEl.appendChild(timeSpan);
       metaEl.appendChild(sizeSpan);
 
-      // body — try pretty JSON, else raw text
       try {
         const json = JSON.parse(res.text);
         const pretty = JSON.stringify(json, null, 2);
-        bodyEl.innerHTML = highlightJson(pretty); // safe: entities escaped before regex
+        bodyEl.innerHTML = highlightJson(pretty);
       } catch {
         bodyEl.textContent = res.text;
       }
@@ -1057,7 +1052,7 @@ ws.onclose = () => console.log('disconnected');`;
   async function loadPools() {
     if (!cfg.baseUrl) return;
     try {
-      const res = await apiRequest('GET', cfg.baseUrl + '/api/pools', null);
+      const res = await apiRequest('GET', cfg.baseUrl + '/api/pools-list', null);
       if (!res.ok) return;
       const data = JSON.parse(res.text);
       const pools = data.pools || [];
@@ -1143,14 +1138,11 @@ ws.onclose = () => console.log('disconnected');`;
     renderWsSection();
     bindEvents();
 
-    // restore base URL
     const urlInput = document.getElementById('base-url');
     if (urlInput) urlInput.value = cfg.baseUrl;
 
-    // auto-load pools if URL is set
     if (cfg.baseUrl) loadPools();
 
-    // update WS display
     updateWsUrlDisplay();
   }
 
