@@ -4,14 +4,14 @@
 (function () {
   'use strict';
 
-  /* ── CONFIG ─────────────────────────────────── */
+  /* -- CONFIG -- */
   const cfg = {
     baseUrl: localStorage.getItem('mc_base_url') || 'https://pool.bitwebcore.net',
     poolId:  localStorage.getItem('mc_pool_id')  || '',
     theme:   localStorage.getItem('mc_theme')    || 'auto',
   };
 
-  /* ── THEME ──────────────────────────────────── */
+  /* -- THEME -- */
   const Theme = (() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const icons  = { light: 'fa-regular fa-sun', dark: 'fa-regular fa-moon', auto: 'fa-solid fa-circle-half-stroke' };
@@ -43,7 +43,7 @@
     return { init, set };
   })();
 
-  /* ── HELPERS ────────────────────────────────── */
+  /* -- HELPERS -- */
 
   // Build URL from template + path params + query params
   function buildUrl(tpl, pathVars = {}, queryVars = {}) {
@@ -90,7 +90,7 @@
     return (n / 1048576).toFixed(2) + ' MB';
   }
 
-  /* ── API CLIENT ─────────────────────────────── */
+  /* -- API CLIENT -- */
   async function apiRequest(method, url, body) {
     const opts = {
       method,
@@ -104,7 +104,7 @@
     return { status: res.status, ok: res.ok, text, elapsed };
   }
 
-  /* ── ENDPOINT DEFINITIONS ───────────────────── */
+  /* -- ENDPOINT DEFINITIONS -- */
   // param types: path | query | body
   // inputType: text | number | select
   const POOL_ENDPOINTS = [
@@ -370,7 +370,7 @@
     },
   ];
 
-  /* ── RENDER HELPERS ─────────────────────────── */
+  /* -- RENDER HELPERS -- */
 
   function makeBadge(method) {
     const span = document.createElement('span');
@@ -570,7 +570,7 @@
     if (mc) setText(mc, minerCount);
   }
 
-  /* ── WEBSOCKET SECTION ──────────────────────── */
+  /* -- WEBSOCKET SECTION -- */
   let wsConn = null;
 
   // WS event type values are the enum name lowercased (e.g. WsNotificationType.CycleStats → "cyclestats")
@@ -844,7 +844,7 @@ ws.onclose = () => console.log('disconnected');`;
     setText(el || document.getElementById('ws-url-display'), base + '/notifications');
   }
 
-  /* ── WS EVENT HANDLERS ──────────────────────── */
+  /* -- WS EVENT HANDLERS -- */
   function wsConnect() {
     const base = cfg.baseUrl.replace(/^https?/, (p) => (p === 'https' ? 'wss' : 'ws'));
     const url = base + '/notifications';
@@ -935,7 +935,7 @@ ws.onclose = () => console.log('disconnected');`;
     log.scrollTop = log.scrollHeight;
   }
 
-  /* ── URL PREVIEW ────────────────────────────── */
+  /* -- URL PREVIEW -- */
   function resolveEndpoint(ep, card) {
     const pathVars = {}, queryVars = {}, bodyVars = {};
     pathVars.poolId = cfg.poolId;
@@ -963,7 +963,7 @@ ws.onclose = () => console.log('disconnected');`;
     } catch {}
   }
 
-  /* ── RUN REQUEST ────────────────────────────── */
+  /* -- RUN REQUEST -- */
   async function runEndpoint(epId) {
     const allEps = [...POOL_ENDPOINTS, ...MINER_ENDPOINTS].flatMap((g) => g.items);
     const ep = allEps.find((e) => e.id === epId);
@@ -1044,7 +1044,7 @@ ws.onclose = () => console.log('disconnected');`;
     }
   }
 
-  /* ── POOL SELECTOR ──────────────────────────── */
+  /* -- POOL SELECTOR -- */
   async function loadPools() {
     if (!cfg.baseUrl) return;
     try {
@@ -1069,7 +1069,7 @@ ws.onclose = () => console.log('disconnected');`;
     } catch {}
   }
 
-  /* ── EVENT BINDING ──────────────────────────── */
+  /* -- EVENT BINDING -- */
   function bindEvents() {
     // Theme
     document.querySelectorAll('[data-theme]').forEach((btn) => {
@@ -1127,7 +1127,7 @@ ws.onclose = () => console.log('disconnected');`;
     document.getElementById('ws-disconnect')?.addEventListener('click', wsDisconnect);
   }
 
-  /* ── INIT ───────────────────────────────────── */
+  /* -- INIT --*/
   function init() {
     Theme.init();
     renderEndpoints();
