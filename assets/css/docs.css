@@ -13,6 +13,9 @@
   --radius: 8px;
   --radius-sm: 5px;
   --trans: 0.15s ease;
+
+  --spinner-color: #fff;
+  --spinner-track: rgba(255,255,255,.4);
 }
 
 [data-bs-theme="light"] {
@@ -310,6 +313,7 @@ body {
 }
 .ep-method-get  { background: var(--clr-get-bg);  color: var(--clr-get); }
 .ep-method-post { background: var(--clr-post-bg); color: var(--clr-post); }
+.ep-method-del  { background: var(--clr-del-bg);  color: var(--clr-del); }
 
 .ep-path {
   font-family: var(--font-mono);
@@ -455,20 +459,30 @@ body {
 .ep-status-err { color: var(--status-err); font-family: var(--font-mono); font-weight: 500; }
 .ep-resp-time  { color: var(--text-muted); font-family: var(--font-mono); }
 .ep-resp-size  { color: var(--text-muted); font-family: var(--font-mono); }
-.ep-response-body {
+
+/* Code blocks (shared) */
+.code-block {
   background: var(--code-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  margin: 0;
   font-family: var(--font-mono);
   font-size: 0.78rem;
   line-height: 1.55;
-  color: var(--code-text);
   overflow-x: auto;
-  max-height: 420px;
   overflow-y: auto;
   white-space: pre;
+}
+
+.ep-response-body {
+  padding: 12px 14px;
+  color: var(--code-text);
+  max-height: 420px;
+}
+
+.ep-example {
+  padding: 12px 14px;
+  margin: 0;
+  max-height: 320px;
 }
 
 /* JSON syntax colors */
@@ -477,22 +491,6 @@ body {
 .json-num  { color: var(--json-num); }
 .json-bool { color: var(--json-bool); }
 .json-null { color: var(--json-null); }
-
-/* Static example blocks */
-.ep-example {
-  background: var(--code-bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  line-height: 1.55;
-  overflow-x: auto;
-  max-height: 320px;
-  overflow-y: auto;
-  white-space: pre;
-}
 
 /* === WEBSOCKET SECTION === */
 .ws-card {
@@ -647,8 +645,8 @@ body {
 .ep-spinner {
   display: inline-block;
   width: 13px; height: 13px;
-  border: 2px solid rgba(255,255,255,.4);
-  border-top-color: #fff;
+  border: 2px solid var(--spinner-track);
+  border-top-color: var(--spinner-color);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
