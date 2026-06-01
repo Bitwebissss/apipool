@@ -461,7 +461,9 @@ body {
 .ep-resp-size  { color: var(--text-muted); font-family: var(--font-mono); }
 
 /* Code blocks (shared) */
-.code-block {
+.code-block,
+.ep-response-body,
+.ep-example {
   background: var(--code-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);

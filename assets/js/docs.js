@@ -1,17 +1,17 @@
-/* docs.js — Miningcore API Documentation
+/* docs.js -- Miningcore API Documentation
    Pure vanilla JS, IIFE, no innerHTML with user data, no eval */
 
 (function () {
   'use strict';
 
-  /* -- CONFIG -- */
+  /* -- CONFIG ------------------------------------------------- */
   const cfg = {
     baseUrl: localStorage.getItem('mc_base_url') || 'https://pool.bitwebcore.net',
     poolId:  localStorage.getItem('mc_pool_id')  || '',
     theme:   localStorage.getItem('mc_theme')    || 'auto',
   };
 
-  /* -- THEME -- */
+  /* -- THEME -------------------------------------------------- */
   const Theme = (() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const icons  = { light: 'fa-regular fa-sun', dark: 'fa-regular fa-moon', auto: 'fa-solid fa-circle-half-stroke' };
@@ -43,7 +43,7 @@
     return { init, set };
   })();
 
-  /* -- HELPERS -- */
+  /* -- HELPERS ------------------------------------------------ */
 
   // Build URL from template + path params + query params
   function buildUrl(tpl, pathVars = {}, queryVars = {}) {
@@ -90,7 +90,7 @@
     return (n / 1048576).toFixed(2) + ' MB';
   }
 
-  /* -- API CLIENT -- */
+  /* -- API CLIENT --------------------------------------------- */
   async function apiRequest(method, url, body) {
     const opts = {
       method,
@@ -104,7 +104,7 @@
     return { status: res.status, ok: res.ok, text, elapsed };
   }
 
-  /* -- ENDPOINT DEFINITIONS -- */
+  /* -- ENDPOINT DEFINITIONS ----------------------------------- */
   // param types: path | query | body
   // inputType: text | number | select
   const POOL_ENDPOINTS = [
@@ -177,7 +177,7 @@
           id: 'getBlocksV2',
           method: 'GET',
           path: '/api/v2/pools/{poolId}/blocks',
-          summary: 'Pool blocks (v2 — paginated)',
+          summary: 'Pool blocks (v2 -- paginated)',
           desc: 'Same as v1 but wraps result in { result, pageCount, itemCount } for easier pagination UI.',
           v2: true,
           params: [
@@ -245,7 +245,7 @@
           id: 'getMinerBlocksV2',
           method: 'GET',
           path: '/api/v2/pools/{poolId}/miners/{address}/blocks',
-          summary: 'Miner blocks (v2 — paginated)',
+          summary: 'Miner blocks (v2 -- paginated)',
           v2: true,
           params: [
             { name: 'address',  type: 'path',  inputType: 'text',   placeholder: 'web1p...', hint: '', required: true },
@@ -274,7 +274,7 @@
           id: 'getMinerPaymentsV2',
           method: 'GET',
           path: '/api/v2/pools/{poolId}/miners/{address}/payments',
-          summary: 'Miner payments (v2 — paginated)',
+          summary: 'Miner payments (v2 -- paginated)',
           v2: true,
           desc: 'Same as v1 with pagination metadata.',
           params: [
@@ -353,14 +353,13 @@
           method: 'POST',
           path: '/api/pools/{poolId}/miners/{address}/settings',
           summary: 'Update miner settings',
-          desc: 'Update payment threshold. The request IP must match one of the miner\'s recently used stratum IPs — no token auth needed.',
+          desc: 'Update payment threshold. The request IP must match one of the miner\'s recently used stratum IPs -- no token auth needed.',
           note: 'Auth: your IP must match a recently used mining IP for this address. Send from the same machine you mine from.',
           params: [
             { name: 'address',          type: 'path', inputType: 'text',   placeholder: 'web1p...', hint: '', required: true },
             { name: 'ipAddress',        type: 'body', inputType: 'text',   placeholder: '1.2.3.4', hint: 'Your current IP address', required: true },
-            { name: 'paymentThreshold', type: 'body', inputType: 'number', placeholder: '0.01',    hint: 'Min payout amount (must be ≥ pool minimum)', required: true },
+            { name: 'paymentThreshold', type: 'body', inputType: 'number', placeholder: '0.01',    hint: 'Min payout amount (must be >= pool minimum)', required: true },
           ],
-          // ADDED: body builder function
           buildBody: (vars) => ({
             ipAddress: vars.ipAddress || '',
             settings: { paymentThreshold: parseFloat(vars.paymentThreshold) || 0 }
@@ -370,7 +369,7 @@
     },
   ];
 
-  /* -- RENDER HELPERS -- */
+  /* -- RENDER HELPERS ----------------------------------------- */
 
   function makeBadge(method) {
     const span = document.createElement('span');
@@ -382,7 +381,6 @@
   function makePathEl(path) {
     const code = document.createElement('code');
     code.className = 'ep-path';
-    // highlight {param} segments — set via safe DOM ops
     path.split(/({[^}]+})/).forEach((seg) => {
       if (/^{/.test(seg)) {
         const s = document.createElement('span');
@@ -446,7 +444,6 @@
     card.className = 'ep-card';
     card.dataset.id = ep.id;
 
-    // Header
     const hdr = document.createElement('div');
     hdr.className = 'ep-header';
     hdr.setAttribute('role', 'button');
@@ -468,7 +465,6 @@
     hdr.appendChild(chev);
     card.appendChild(hdr);
 
-    // Body
     const body = document.createElement('div');
     body.className = 'ep-body';
 
@@ -502,7 +498,6 @@
       body.appendChild(ps);
     }
 
-    // Run row
     const runRow = document.createElement('div');
     runRow.className = 'ep-run-row';
     const runBtn = document.createElement('button');
@@ -521,7 +516,6 @@
     runRow.appendChild(urlPreview);
     body.appendChild(runRow);
 
-    // Response section
     const resp = document.createElement('div');
     resp.className = 'ep-response';
     resp.dataset.respArea = ep.id;
@@ -570,10 +564,9 @@
     if (mc) setText(mc, minerCount);
   }
 
-  /* -- WEBSOCKET SECTION -- */
+  /* -- WEBSOCKET SECTION -------------------------------------- */
   let wsConn = null;
 
-  // WS event type values are the enum name lowercased (e.g. WsNotificationType.CycleStats → "cyclestats")
   const WS_EVENTS = [
     {
       name: 'greeting',
@@ -622,7 +615,6 @@
   function renderWsSection() {
     const el = document.getElementById('ws-section');
 
-    // Info card
     const info = document.createElement('div');
     info.className = 'ws-card';
     const t = document.createElement('div');
@@ -635,10 +627,9 @@
     info.appendChild(t);
     const d = document.createElement('p');
     d.className = 'ws-desc';
-    setText(d, 'The pool exposes a raw WebSocket relay at /notifications. Events are JSON messages with a "type" field matching the event names below (all lowercase). No socket.io protocol is used — connect with native WebSocket.');
+    setText(d, 'The pool exposes a raw WebSocket relay at /notifications. Events are JSON messages with a "type" field matching the event names below (all lowercase). No socket.io protocol is used -- connect with native WebSocket.');
     info.appendChild(d);
 
-    // Note — FIXED: dynamic WS URL
     const note = document.createElement('div');
     note.className = 'mc-note';
     const ni = document.createElement('i');
@@ -651,11 +642,10 @@
       const wsProtocol = u.protocol === 'https:' ? 'wss:' : 'ws:';
       wsNoteUrl = wsProtocol + '//' + u.host + '/notifications';
     } catch (e) {}
-    setText(nt, 'Native WebSocket only — not socket.io. Connect to: ' + wsNoteUrl);
+    setText(nt, 'Native WebSocket only -- not socket.io. Connect to: ' + wsNoteUrl);
     note.appendChild(nt);
     info.appendChild(note);
 
-    // URL row
     const urlRow = document.createElement('div');
     urlRow.className = 'ws-url-row';
     const ul = document.createElement('span');
@@ -669,7 +659,6 @@
     urlRow.appendChild(uv);
     info.appendChild(urlRow);
 
-    // Controls
     const ctrlRow = document.createElement('div');
     ctrlRow.className = 'd-flex align-items-center gap-3 mb-3 flex-wrap';
     const connBtn = document.createElement('button');
@@ -696,7 +685,6 @@
     ctrlRow.appendChild(statusEl);
     info.appendChild(ctrlRow);
 
-    // Log
     const logLabel = document.createElement('div');
     logLabel.className = 'ep-params-title mb-1';
     setText(logLabel, 'Event log');
@@ -704,7 +692,6 @@
     const log = document.createElement('div');
     log.className = 'ws-log';
     log.id = 'ws-log';
-    // FIXED: placeholder with data attribute
     const empty = document.createElement('span');
     empty.dataset.placeholder = 'true';
     setText(empty, 'Connect to start receiving events...');
@@ -713,7 +700,6 @@
 
     el.appendChild(info);
 
-    // Events reference card
     const evCard = document.createElement('div');
     evCard.className = 'ws-card';
     const et = document.createElement('div');
@@ -758,7 +744,6 @@
     evCard.appendChild(grid);
     el.appendChild(evCard);
 
-    // Code example card
     const codeCard = document.createElement('div');
     codeCard.className = 'ws-card';
     const ct2 = document.createElement('div');
@@ -780,14 +765,14 @@ ws.onmessage = ({ data }) => {
   switch (msg.type) {
 
     case 'cyclestats':
-      // Sent every ~2 min — use for live pool hashrate / miner count.
+      // Sent every ~2 min -- use for live pool hashrate / miner count.
       // msg.poolId, msg.poolHashrate, msg.connectedMiners, msg.sharesPerSecond
       // msg.connectedPeers (nullable), msg.poolEffort (nullable)
       console.log('Pool stats', msg.poolId, msg.poolHashrate, 'effort:', msg.poolEffort);
       break;
 
     case 'chainheightstats':
-      // Sent on every new network block — network metrics snapshot.
+      // Sent on every new network block -- network metrics snapshot.
       // msg.poolId, msg.networkHashrate, msg.networkDifficulty (nullable)
       // msg.blockHeight, msg.networkBlockHeight, msg.lastNetworkBlockTime (nullable)
       // msg.totalConfirmedBlocks (nullable), msg.totalPendingBlocks (nullable)
@@ -796,7 +781,7 @@ ws.onmessage = ({ data }) => {
       break;
 
     case 'blockfoundstats':
-      // Extended stats snapshot sent when the pool finds a block — pool block counters.
+      // Extended stats snapshot sent when the pool finds a block -- pool block counters.
       // msg.poolId, msg.networkHashrate, msg.networkDifficulty (nullable)
       // msg.blockHeight, msg.networkBlockHeight, msg.lastNetworkBlockTime (nullable)
       // msg.lastPoolBlockTime (nullable), msg.blocks24h (nullable)
@@ -844,7 +829,7 @@ ws.onclose = () => console.log('disconnected');`;
     setText(el || document.getElementById('ws-url-display'), base + '/notifications');
   }
 
-  /* -- WS EVENT HANDLERS -- */
+  /* -- WS EVENT HANDLERS -------------------------------------- */
   function wsConnect() {
     const base = cfg.baseUrl.replace(/^https?/, (p) => (p === 'https' ? 'wss' : 'ws'));
     const url = base + '/notifications';
@@ -879,7 +864,7 @@ ws.onclose = () => console.log('disconnected');`;
         wsLogEntry('sys', 'Disconnected (code ' + e.code + ')');
         document.getElementById('ws-connect').disabled = false;
         document.getElementById('ws-disconnect').disabled = true;
-        wsConn = null;  // ONLY here we nullify
+        wsConn = null;
       };
     } catch (err) {
       wsLogEntry('sys', 'Failed: ' + err.message);
@@ -887,7 +872,6 @@ ws.onclose = () => console.log('disconnected');`;
   }
 
   function wsDisconnect() {
-    // FIXED: do NOT null wsConn here; let onclose handle it.
     if (wsConn) {
       wsConn.close();
     }
@@ -907,9 +891,9 @@ ws.onclose = () => console.log('disconnected');`;
   function wsLogEntry(type, msg) {
     const log = document.getElementById('ws-log');
     if (!log) return;
-    // FIXED: check placeholder using data attribute
+    // Remove placeholder if present
     if (log.childElementCount === 1 && log.firstElementChild?.dataset?.placeholder === 'true') {
-      log.innerHTML = '';
+      log.firstElementChild.remove();
     }
 
     const now = new Date().toTimeString().slice(0, 8);
@@ -935,7 +919,7 @@ ws.onclose = () => console.log('disconnected');`;
     log.scrollTop = log.scrollHeight;
   }
 
-  /* -- URL PREVIEW -- */
+  /* -- URL PREVIEW -------------------------------------------- */
   function resolveEndpoint(ep, card) {
     const pathVars = {}, queryVars = {}, bodyVars = {};
     pathVars.poolId = cfg.poolId;
@@ -963,7 +947,7 @@ ws.onclose = () => console.log('disconnected');`;
     } catch {}
   }
 
-  /* -- RUN REQUEST -- */
+  /* -- RUN REQUEST -------------------------------------------- */
   async function runEndpoint(epId) {
     const allEps = [...POOL_ENDPOINTS, ...MINER_ENDPOINTS].flatMap((g) => g.items);
     const ep = allEps.find((e) => e.id === epId);
@@ -979,7 +963,8 @@ ws.onclose = () => console.log('disconnected');`;
     const { url, bodyVars } = resolveEndpoint(ep, card);
 
     runBtn.disabled = true;
-    runBtn.innerHTML = '';
+    // Clear button content safely
+    while (runBtn.firstChild) runBtn.removeChild(runBtn.firstChild);
     const sp = document.createElement('span');
     sp.className = 'ep-spinner';
     runBtn.appendChild(sp);
@@ -987,13 +972,10 @@ ws.onclose = () => console.log('disconnected');`;
 
     let body = null;
     if (ep.method === 'POST' && Object.keys(bodyVars).length) {
-      // FIXED: use buildBody if defined, else fallback to bodyVars
       if (typeof ep.buildBody === 'function') {
         body = ep.buildBody(bodyVars);
       } else {
-        // generic fallback (simple object copy)
         body = { ...bodyVars };
-        // special numeric conversion for any threshold-like param
         if (bodyVars.paymentThreshold !== undefined) {
           body.paymentThreshold = parseFloat(bodyVars.paymentThreshold) || 0;
         }
@@ -1003,7 +985,7 @@ ws.onclose = () => console.log('disconnected');`;
     try {
       const res = await apiRequest(ep.method, url, body);
 
-      metaEl.innerHTML = '';
+      metaEl.replaceChildren();
       const statusSpan = document.createElement('span');
       statusSpan.className = res.ok ? 'ep-status-ok' : 'ep-status-err';
       setText(statusSpan, res.status + (res.ok ? ' OK' : ' Error'));
@@ -1027,7 +1009,7 @@ ws.onclose = () => console.log('disconnected');`;
 
       respEl.classList.add('visible');
     } catch (err) {
-      metaEl.innerHTML = '';
+      metaEl.replaceChildren();
       const errSpan = document.createElement('span');
       errSpan.className = 'ep-status-err';
       setText(errSpan, 'Network error: ' + err.message);
@@ -1036,7 +1018,8 @@ ws.onclose = () => console.log('disconnected');`;
       respEl.classList.add('visible');
     } finally {
       runBtn.disabled = false;
-      runBtn.innerHTML = '';
+      // Clear button content safely
+      while (runBtn.firstChild) runBtn.removeChild(runBtn.firstChild);
       const ic = document.createElement('i');
       ic.className = 'fa-solid fa-play';
       runBtn.appendChild(ic);
@@ -1044,7 +1027,7 @@ ws.onclose = () => console.log('disconnected');`;
     }
   }
 
-  /* -- POOL SELECTOR -- */
+  /* -- POOL SELECTOR ------------------------------------------ */
   async function loadPools() {
     if (!cfg.baseUrl) return;
     try {
@@ -1053,11 +1036,11 @@ ws.onclose = () => console.log('disconnected');`;
       const data = JSON.parse(res.text);
       const pools = data.pools || [];
       const sel = document.getElementById('pool-select');
-      sel.innerHTML = '';
+      sel.replaceChildren();
       pools.forEach((p) => {
         const o = document.createElement('option');
         o.value = p.id;
-        setText(o, p.id + ' — ' + (p.coin?.symbol || ''));
+        setText(o, p.id + ' -- ' + (p.coin?.symbol || ''));
         if (p.id === cfg.poolId) o.selected = true;
         sel.appendChild(o);
       });
@@ -1069,14 +1052,12 @@ ws.onclose = () => console.log('disconnected');`;
     } catch {}
   }
 
-  /* -- EVENT BINDING -- */
+  /* -- EVENT BINDING ------------------------------------------ */
   function bindEvents() {
-    // Theme
     document.querySelectorAll('[data-theme]').forEach((btn) => {
       btn.addEventListener('click', () => Theme.set(btn.dataset.theme));
     });
 
-    // Apply URL
     document.getElementById('apply-url')?.addEventListener('click', () => {
       const input = document.getElementById('base-url');
       cfg.baseUrl = input.value.trim().replace(/\/$/, '');
@@ -1085,13 +1066,11 @@ ws.onclose = () => console.log('disconnected');`;
       loadPools();
     });
 
-    // Pool selector
     document.getElementById('pool-select')?.addEventListener('change', (e) => {
       cfg.poolId = e.target.value;
       localStorage.setItem('mc_pool_id', cfg.poolId);
     });
 
-    // Endpoint card toggle
     document.addEventListener('click', (e) => {
       const hdr = e.target.closest('.ep-header');
       if (!hdr) return;
@@ -1102,7 +1081,6 @@ ws.onclose = () => console.log('disconnected');`;
       hdr.setAttribute('aria-expanded', String(!wasOpen));
     });
 
-    // Run button
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-ep-id]');
       if (!btn) return;
@@ -1110,7 +1088,6 @@ ws.onclose = () => console.log('disconnected');`;
       runEndpoint(btn.dataset.epId);
     });
 
-    // Live URL preview on param input
     document.addEventListener('input', (e) => {
       const input = e.target.closest('[data-param]');
       if (!input) return;
@@ -1122,12 +1099,11 @@ ws.onclose = () => console.log('disconnected');`;
       if (ep) updatePreview(ep, card);
     });
 
-    // WS connect/disconnect
     document.getElementById('ws-connect')?.addEventListener('click', wsConnect);
     document.getElementById('ws-disconnect')?.addEventListener('click', wsDisconnect);
   }
 
-  /* -- INIT --*/
+  /* -- INIT --------------------------------------------------- */
   function init() {
     Theme.init();
     renderEndpoints();
