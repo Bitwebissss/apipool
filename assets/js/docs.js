@@ -104,6 +104,26 @@
     return { status: res.status, ok: res.ok, text, elapsed };
   }
 
+  /* -- WEBSOCKET BASE URL NORMALIZATION ----------------------- */
+  function getWsBaseUrl(rawBaseUrl) {
+    const fallback = 'wss://pool.bitwebcore.net';
+    const input = String(rawBaseUrl || '').trim();
+    if (!input) return fallback;
+
+    // Add https:// if no protocol is present
+    const candidate = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(input) ? input : ('https://' + input);
+    try {
+      const parsed = new URL(candidate);
+      // Convert http/https to ws/wss
+      if (parsed.protocol === 'http:') parsed.protocol = 'ws:';
+      else if (parsed.protocol === 'https:') parsed.protocol = 'wss:';
+      else return fallback; // unsupported protocol
+      return parsed.origin;
+    } catch {
+      return fallback;
+    }
+  }
+
   /* -- ENDPOINT DEFINITIONS ----------------------------------- */
   // param types: path | query | body
   // inputType: text | number | select
@@ -636,12 +656,7 @@
     ni.className = 'fa-solid fa-circle-info';
     note.appendChild(ni);
     const nt = document.createElement('span');
-    let wsNoteUrl = 'ws://pool.bitwebcore.net/notifications';
-    try {
-      const u = new URL(cfg.baseUrl);
-      const wsProtocol = u.protocol === 'https:' ? 'wss:' : 'ws:';
-      wsNoteUrl = wsProtocol + '//' + u.host + '/notifications';
-    } catch (e) {}
+    const wsNoteUrl = getWsBaseUrl(cfg.baseUrl) + '/notifications';
     setText(nt, 'Native WebSocket only -- not socket.io. Connect to: ' + wsNoteUrl);
     note.appendChild(nt);
     info.appendChild(note);
@@ -825,13 +840,13 @@ ws.onclose = () => console.log('disconnected');`;
   }
 
   function updateWsUrlDisplay(el) {
-    const base = cfg.baseUrl.replace(/^https?/, (p) => (p === 'https' ? 'wss' : 'ws'));
+    const base = getWsBaseUrl(cfg.baseUrl);
     setText(el || document.getElementById('ws-url-display'), base + '/notifications');
   }
 
   /* -- WS EVENT HANDLERS -------------------------------------- */
   function wsConnect() {
-    const base = cfg.baseUrl.replace(/^https?/, (p) => (p === 'https' ? 'wss' : 'ws'));
+    const base = getWsBaseUrl(cfg.baseUrl);
     const url = base + '/notifications';
     try {
       wsConn = new WebSocket(url);
