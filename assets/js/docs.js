@@ -578,12 +578,6 @@
       fields: 'message',
     },
     {
-      name: 'blockfound',
-      icon: '⛏️',
-      desc: 'A new block was found by any pool miner.',
-      fields: 'poolId, blockHeight, symbol, name, miner, minerExplorerLink, source',
-    },
-    {
       name: 'blockunlocked',
       icon: '✅',
       desc: 'A pending block was confirmed or orphaned.',
@@ -594,12 +588,6 @@
       icon: '🔄',
       desc: 'Confirmation progress update for a pending block.',
       fields: 'poolId, blockHeight, symbol, name, progress (0..1), effort?',
-    },
-    {
-      name: 'newchainheight',
-      icon: '📦',
-      desc: 'A new block appeared on the network chain.',
-      fields: 'poolId, blockHeight, symbol, name, networkBlockHeight',
     },
     {
       name: 'payment',
@@ -796,15 +784,8 @@ ws.onmessage = ({ data }) => {
       console.log('Chain height', msg.poolId, msg.blockHeight);
       break;
 
-    case 'blockfound':
-      // Pool found a block.
-      // msg.poolId, msg.blockHeight, msg.symbol, msg.name
-      // msg.miner, msg.minerExplorerLink, msg.source
-      console.log('Block found!', msg.poolId, msg.blockHeight, msg.miner);
-      break;
-
     case 'blockfoundstats':
-      // Extended stats snapshot sent alongside blockfound — pool block counters.
+      // Extended stats snapshot sent when the pool finds a block — pool block counters.
       // msg.poolId, msg.networkHashrate, msg.networkDifficulty (nullable)
       // msg.blockHeight, msg.networkBlockHeight, msg.lastNetworkBlockTime (nullable)
       // msg.lastPoolBlockTime (nullable), msg.blocks24h (nullable)
@@ -837,12 +818,6 @@ ws.onmessage = ({ data }) => {
       // msg.txIds[], msg.txExplorerLinks[], msg.txFee (nullable)
       // msg.totalPaid (nullable), msg.error (null on success)
       console.log('Payment sent', msg.poolId, msg.amount, 'total ever paid:', msg.totalPaid);
-      break;
-
-    case 'newchainheight':
-      // New block appeared on the network (before pool stats update).
-      // msg.poolId, msg.blockHeight, msg.symbol, msg.name, msg.networkBlockHeight
-      console.log('New chain height', msg.poolId, msg.blockHeight);
       break;
   }
 };
