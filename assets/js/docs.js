@@ -208,6 +208,21 @@
 
   const MINER_ENDPOINTS = [
     {
+      group: 'Miner Stats',
+      items: [
+        {
+          id: 'getMinerStats',
+          method: 'GET',
+          path: '/api/pools/{poolId}/miners/{address}',
+          summary: 'Miner overview',
+          desc: 'Returns miner stats: pending balance, total paid, pending shares, effort since last block, last payment timestamp, workers online/offline, and current per-worker hashrate snapshot.',
+          params: [
+            { name: 'address', type: 'path', inputType: 'text', placeholder: 'web1p...', hint: 'Miner wallet address', required: true },
+          ],
+        },
+      ],
+    },
+    {
       group: 'Miner Blocks',
       items: [
         {
@@ -241,20 +256,74 @@
           method: 'GET',
           path: '/api/pools/{poolId}/miners/{address}/payments',
           summary: 'Miner payment history',
-          desc: 'Returns the 20 most recent payments sent to this miner address, with tx hash and explorer link. No pagination required.',
+          desc: 'All payments sent to this miner address, with tx hash and explorer link.',
           params: [
             { name: 'address',  type: 'path',  inputType: 'text',   placeholder: 'web1p...', hint: '', required: true },
+            { name: 'page',     type: 'query', inputType: 'number', placeholder: '0',       hint: '' },
+            { name: 'pageSize', type: 'query', inputType: 'number', placeholder: '15',      hint: '' },
           ],
         },
         {
           id: 'getMinerPaymentsV2',
           method: 'GET',
           path: '/api/v2/pools/{poolId}/miners/{address}/payments',
-          summary: 'Miner payments (v2)',
+          summary: 'Miner payments (v2 -- paginated)',
           v2: true,
-          desc: 'Returns the 20 most recent payments sent to this miner address (v2 envelope with itemCount). No pagination required.',
+          desc: 'Same as v1 with pagination metadata.',
           params: [
             { name: 'address',  type: 'path',  inputType: 'text',   placeholder: 'web1p...', hint: '', required: true },
+            { name: 'page',     type: 'query', inputType: 'number', placeholder: '0',       hint: '' },
+            { name: 'pageSize', type: 'query', inputType: 'number', placeholder: '15',      hint: '' },
+          ],
+        },
+        {
+          id: 'getMinerBalanceChanges',
+          method: 'GET',
+          path: '/api/pools/{poolId}/miners/{address}/balancechanges',
+          summary: 'Balance changes',
+          desc: 'Full history of balance adjustments (credits, debits, payouts) for a miner.',
+          params: [
+            { name: 'address',  type: 'path',  inputType: 'text',   placeholder: 'web1p...', hint: '', required: true },
+            { name: 'page',     type: 'query', inputType: 'number', placeholder: '0',       hint: '' },
+            { name: 'pageSize', type: 'query', inputType: 'number', placeholder: '15',      hint: '' },
+          ],
+        },
+        {
+          id: 'getMinerBalanceChangesV2',
+          method: 'GET',
+          path: '/api/v2/pools/{poolId}/miners/{address}/balancechanges',
+          summary: 'Balance changes (v2)',
+          v2: true,
+          desc: 'Same as v1 with pagination metadata.',
+          params: [
+            { name: 'address',  type: 'path',  inputType: 'text',   placeholder: 'web1p...', hint: '', required: true },
+            { name: 'page',     type: 'query', inputType: 'number', placeholder: '0',       hint: '' },
+            { name: 'pageSize', type: 'query', inputType: 'number', placeholder: '15',      hint: '' },
+          ],
+        },
+        {
+          id: 'getMinerEarningsDaily',
+          method: 'GET',
+          path: '/api/pools/{poolId}/miners/{address}/earnings/daily',
+          summary: 'Daily earnings',
+          desc: 'Aggregated earnings per calendar day. Useful for earnings charts.',
+          params: [
+            { name: 'address',  type: 'path',  inputType: 'text',   placeholder: 'web1p...', hint: '', required: true },
+            { name: 'page',     type: 'query', inputType: 'number', placeholder: '0',       hint: '' },
+            { name: 'pageSize', type: 'query', inputType: 'number', placeholder: '15',      hint: '' },
+          ],
+        },
+        {
+          id: 'getMinerEarningsDailyV2',
+          method: 'GET',
+          path: '/api/v2/pools/{poolId}/miners/{address}/earnings/daily',
+          summary: 'Daily earnings (v2)',
+          v2: true,
+          desc: 'Same as v1 with pagination metadata.',
+          params: [
+            { name: 'address',  type: 'path',  inputType: 'text',   placeholder: 'web1p...', hint: '', required: true },
+            { name: 'page',     type: 'query', inputType: 'number', placeholder: '0',       hint: '' },
+            { name: 'pageSize', type: 'query', inputType: 'number', placeholder: '15',      hint: '' },
           ],
         },
       ],
