@@ -595,16 +595,10 @@
       fields: 'message',
     },
     {
-      name: 'blockunlocked',
-      icon: '✅',
-      desc: 'A pending block was confirmed or orphaned.',
-      fields: 'poolId, blockHeight, symbol, name, status ("confirmed"|"orphaned"), blockType, blockHash, reward, effort?, miner, explorerLink, minerExplorerLink, totalBlocks?, totalConfirmedBlocks?, totalPendingBlocks?, totalOrphanedBlocks?, blocks24h?, blockReward?',
-    },
-    {
       name: 'blockunlockprogress',
       icon: '🔄',
-      desc: 'Confirmation progress update for a pending block.',
-      fields: 'poolId, blockHeight, symbol, name, progress (0..1), effort?',
+      desc: 'Confirmation progress update for a pending (immature) block. Sent on every classifier cycle until the block is fully confirmed or orphaned.',
+      fields: 'poolId, blockHeight, symbol, name, progress (0..1), effort?, reward, miner, created',
     },
     {
       name: 'payment',
@@ -615,14 +609,14 @@
     {
       name: 'chainheightstats',
       icon: '📡',
-      desc: 'Network stats snapshot sent on every new chain height. Carries block counters and network metrics.',
-      fields: 'poolId, networkHashrate, networkDifficulty?, blockHeight, networkBlockHeight, lastNetworkBlockTime?, totalConfirmedBlocks?, totalPendingBlocks?, totalOrphanedBlocks?',
+      desc: 'Network stats snapshot sent on every new chain height. Carries block counters, network metrics and the last known block reward.',
+      fields: 'poolId, networkHashrate, networkDifficulty?, blockHeight, networkBlockHeight, lastNetworkBlockTime?, totalConfirmedBlocks?, totalPendingBlocks?, totalOrphanedBlocks?, blockReward',
     },
     {
       name: 'blockfoundstats',
       icon: '🏆',
-      desc: 'Extended stats snapshot sent when the pool finds a block. Same as chainheightstats plus pool block counters.',
-      fields: 'poolId, networkHashrate, networkDifficulty?, blockHeight, networkBlockHeight, lastNetworkBlockTime?, lastPoolBlockTime?, blocks24h?, totalBlocks?, totalConfirmedBlocks?, totalPendingBlocks?, totalOrphanedBlocks?',
+      desc: 'Extended stats snapshot sent when the pool finds a block. Same as chainheightstats plus pool block counters and the reward of the newly found block.',
+      fields: 'poolId, networkHashrate, networkDifficulty?, blockHeight, networkBlockHeight, lastNetworkBlockTime?, lastPoolBlockTime?, blocks24h?, totalBlocks?, totalConfirmedBlocks?, totalPendingBlocks?, totalOrphanedBlocks?, blockReward',
     },
     {
       name: 'cyclestats',
@@ -791,8 +785,8 @@ ws.onmessage = ({ data }) => {
       // msg.poolId, msg.networkHashrate, msg.networkDifficulty (nullable)
       // msg.blockHeight, msg.networkBlockHeight, msg.lastNetworkBlockTime (nullable)
       // msg.totalConfirmedBlocks (nullable), msg.totalPendingBlocks (nullable)
-      // msg.totalOrphanedBlocks (nullable)
-      console.log('Chain height', msg.poolId, msg.blockHeight);
+      // msg.totalOrphanedBlocks (nullable), msg.blockReward
+      console.log('Chain height', msg.poolId, msg.blockHeight, 'reward:', msg.blockReward);
       break;
 
     case 'blockfoundstats':
@@ -802,25 +796,17 @@ ws.onmessage = ({ data }) => {
       // msg.lastPoolBlockTime (nullable), msg.blocks24h (nullable)
       // msg.totalBlocks (nullable), msg.totalConfirmedBlocks (nullable)
       // msg.totalPendingBlocks (nullable), msg.totalOrphanedBlocks (nullable)
-      console.log('Block found stats', msg.totalConfirmedBlocks);
-      break;
-
-    case 'blockunlocked':
-      // A pending block was confirmed or orphaned.
-      // msg.poolId, msg.blockHeight, msg.symbol, msg.name
-      // msg.status ('confirmed' | 'orphaned'), msg.blockType, msg.blockHash
-      // msg.reward, msg.effort (nullable), msg.miner, msg.explorerLink, msg.minerExplorerLink
-      // msg.totalBlocks (nullable), msg.totalConfirmedBlocks (nullable)
-      // msg.totalPendingBlocks (nullable), msg.totalOrphanedBlocks (nullable)
-      // msg.blocks24h (nullable), msg.blockReward (nullable)
-      console.log('Block unlocked', msg.status, 'reward:', msg.reward);
+      // msg.blockReward -- reward of the newly found block (read from DB after classification)
+      console.log('Block found', msg.blockHeight, 'reward:', msg.blockReward, 'total confirmed:', msg.totalConfirmedBlocks);
       break;
 
     case 'blockunlockprogress':
-      // Confirmation progress update for a pending block.
+      // Confirmation progress for a pending (immature) block.
+      // Sent on every classifier cycle until the block is confirmed or orphaned.
       // msg.poolId, msg.blockHeight, msg.symbol, msg.name
       // msg.progress (0..1), msg.effort (nullable)
-      console.log('Confirm progress', msg.blockHeight, (msg.progress * 100).toFixed(1) + '%');
+      // msg.reward -- real reward from node, msg.miner, msg.created
+      console.log('Confirm progress', msg.blockHeight, (msg.progress * 100).toFixed(1) + '%', 'reward:', msg.reward);
       break;
 
     case 'payment':
