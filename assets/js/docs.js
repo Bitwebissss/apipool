@@ -765,7 +765,7 @@
     const pre = document.createElement('pre');
     pre.className = 'ep-example';
     const codeEx =
-`const ws = new WebSocket('ws://pool.bitwebcore.net/notifications?poolId=bitweb');
+`const ws = new WebSocket('ws://pool.bitwebcore.net/notifications?poolId=bte1');
 
 ws.onopen = () => console.log('connected');
 
