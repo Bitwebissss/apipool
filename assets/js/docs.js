@@ -641,7 +641,7 @@
     info.appendChild(t);
     const d = document.createElement('p');
     d.className = 'ws-desc';
-    setText(d, 'The pool exposes a raw WebSocket relay at /notifications. Events are JSON messages with a "type" field matching the event names below (all lowercase). No socket.io protocol is used -- connect with native WebSocket.');
+    setText(d, 'The pool exposes a raw WebSocket relay at /notifications?poolId={poolId}. Events are JSON messages with a "type" field matching the event names below (all lowercase). No socket.io protocol is used -- connect with native WebSocket.');
     info.appendChild(d);
 
     const note = document.createElement('div');
@@ -650,8 +650,8 @@
     ni.className = 'fa-solid fa-circle-info';
     note.appendChild(ni);
     const nt = document.createElement('span');
-    const wsNoteUrl = getWsBaseUrl(cfg.baseUrl) + '/notifications';
-    setText(nt, 'Native WebSocket only -- not socket.io. Connect to: ' + wsNoteUrl);
+    const wsNoteUrl = getWsUrl();
+    setText(nt, 'Native WebSocket only -- not socket.io. poolId is required. Connect to: ' + wsNoteUrl);
     note.appendChild(nt);
     info.appendChild(note);
 
@@ -765,7 +765,7 @@
     const pre = document.createElement('pre');
     pre.className = 'ep-example';
     const codeEx =
-`const ws = new WebSocket('ws://pool.bitwebcore.net/notifications');
+`const ws = new WebSocket('ws://pool.bitwebcore.net/notifications?poolId=bitweb');
 
 ws.onopen = () => console.log('connected');
 
@@ -825,15 +825,24 @@ ws.onclose = () => console.log('disconnected');`;
     el.appendChild(codeCard);
   }
 
-  function updateWsUrlDisplay(el) {
+  function getWsUrl() {
     const base = getWsBaseUrl(cfg.baseUrl);
-    setText(el || document.getElementById('ws-url-display'), base + '/notifications');
+    return base + '/notifications?poolId=' + encodeURIComponent(cfg.poolId || '');
+  }
+
+  function updateWsUrlDisplay(el) {
+    setText(el || document.getElementById('ws-url-display'), getWsUrl());
   }
 
   /* -- WS EVENT HANDLERS -------------------------------------- */
   function wsConnect() {
-    const base = getWsBaseUrl(cfg.baseUrl);
-    const url = base + '/notifications';
+    if (!cfg.poolId) {
+      wsSetStatus('error', 'Select pool');
+      wsLogEntry('sys', 'Select a pool before connecting');
+      return;
+    }
+
+    const url = getWsUrl();
     try {
       wsConn = new WebSocket(url);
       wsLogEntry('sys', 'Connecting to ' + url + '...');
