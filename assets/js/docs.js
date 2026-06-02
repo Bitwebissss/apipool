@@ -186,7 +186,7 @@
           method: 'GET',
           path: '/api/pools/{poolId}/blocks',
           summary: 'Pool blocks',
-          desc: 'Returns up to 100 most recent blocks found by this pool. Filter by status: confirmed, pending, orphaned.',
+          desc: 'Returns the 100 most recent blocks found by this pool.\n\nResponse: Block[] — plain array.\n[ { blockHeight, hash, reward, effort, status, ... }, ... ]',
           params: [
             { name: 'state', type: 'query', inputType: 'text', placeholder: 'confirmed,pending', hint: 'Comma-separated statuses (optional)' },
           ],
@@ -195,8 +195,8 @@
           id: 'getBlocksV2',
           method: 'GET',
           path: '/api/v2/pools/{poolId}/blocks',
-          summary: 'Pool blocks (v2)',
-          desc: 'Returns up to 100 most recent blocks. Wraps result in { result, pageCount, itemCount }.',
+          summary: 'Pool blocks (v2 — with total count)',
+          desc: 'Same 100 most recent blocks, but wrapped with metadata.\n\nResponse: { result: Block[], itemCount: N, pageCount: 1 }\nitemCount = total blocks found by this pool in DB.',
           v2: true,
           params: [
             { name: 'state', type: 'query', inputType: 'text', placeholder: 'confirmed,pending', hint: 'Comma-separated statuses (optional)' },
@@ -230,7 +230,7 @@
           method: 'GET',
           path: '/api/pools/{poolId}/miners/{address}/blocks',
           summary: 'Blocks found by miner',
-          desc: 'Returns up to 20 most recent blocks found by this miner address. No pagination required.',
+          desc: 'Returns the 20 most recent blocks found by this miner.\n\nResponse: Block[] — plain array.\n[ { blockHeight, hash, reward, effort, status, ... }, ... ]',
           params: [
             { name: 'address', type: 'path', inputType: 'text', placeholder: 'web1p...', hint: '', required: true },
           ],
@@ -239,9 +239,9 @@
           id: 'getMinerBlocksV2',
           method: 'GET',
           path: '/api/v2/pools/{poolId}/miners/{address}/blocks',
-          summary: 'Miner blocks (v2)',
+          summary: 'Miner blocks (v2 — with total count)',
           v2: true,
-          desc: 'Returns up to 20 most recent blocks found by this miner address (v2 envelope). No pagination required.',
+          desc: 'Same 20 most recent blocks, but wrapped with metadata.\n\nResponse: { result: Block[], itemCount: N, pageCount: 1 }\nitemCount = total blocks found by this miner in DB.',
           params: [
             { name: 'address', type: 'path', inputType: 'text', placeholder: 'web1p...', hint: '', required: true },
           ],
@@ -256,7 +256,7 @@
           method: 'GET',
           path: '/api/pools/{poolId}/miners/{address}/payments',
           summary: 'Miner payment history',
-          desc: 'Returns the 20 most recent payments sent to this miner address, with tx hash and explorer link. No pagination required.',
+          desc: 'Returns the 20 most recent payments for this miner with tx hash and explorer link.\n\nResponse: Payment[] — plain array.\n[ { address, amount, transactionConfirmationData, ... }, ... ]',
           params: [
             { name: 'address',  type: 'path',  inputType: 'text',   placeholder: 'web1p...', hint: '', required: true },
           ],
@@ -265,9 +265,9 @@
           id: 'getMinerPaymentsV2',
           method: 'GET',
           path: '/api/v2/pools/{poolId}/miners/{address}/payments',
-          summary: 'Miner payments (v2)',
+          summary: 'Miner payments (v2 — with total count)',
           v2: true,
-          desc: 'Returns the 20 most recent payments sent to this miner address (v2 envelope with itemCount). No pagination required.',
+          desc: 'Same 20 most recent payments, but wrapped with metadata.\n\nResponse: { result: Payment[], itemCount: N, pageCount: 1 }\nitemCount = total payments in DB (useful to show "last 20 of 47").',
           params: [
             { name: 'address',  type: 'path',  inputType: 'text',   placeholder: 'web1p...', hint: '', required: true },
           ],
