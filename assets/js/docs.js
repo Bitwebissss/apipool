@@ -230,7 +230,7 @@
           method: 'GET',
           path: '/api/pools/{poolId}/miners/{address}/blocks',
           summary: 'Blocks found by miner',
-          desc: 'Returns up to 100 most recent blocks found by this miner address. No pagination required.',
+          desc: 'Returns up to 20 most recent blocks found by this miner address. No pagination required.',
           params: [
             { name: 'address', type: 'path', inputType: 'text', placeholder: 'web1p...', hint: '', required: true },
           ],
@@ -241,7 +241,7 @@
           path: '/api/v2/pools/{poolId}/miners/{address}/blocks',
           summary: 'Miner blocks (v2)',
           v2: true,
-          desc: 'Returns up to 100 most recent blocks found by this miner address (v2 envelope). No pagination required.',
+          desc: 'Returns up to 20 most recent blocks found by this miner address (v2 envelope). No pagination required.',
           params: [
             { name: 'address', type: 'path', inputType: 'text', placeholder: 'web1p...', hint: '', required: true },
           ],
