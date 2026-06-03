@@ -292,15 +292,15 @@
           method: 'POST',
           path: '/api/pools/{poolId}/miners/{address}/settings',
           summary: 'Update miner settings',
-          desc: 'Update payment threshold. The request IP must match one of the miner\'s recently used stratum IPs -- no token auth needed.',
-          note: 'Auth: your IP must match a recently used mining IP for this address. Send from the same machine you mine from.',
+          desc: 'Update payment threshold. Authenticate with the mpass= password set in your stratum connection. The password is verified against your last 100 shares -- no token auth needed.',
+          note: 'Auth: pass the same mpass= value you use in your stratum password field (e.g. -p mpass=abc123 or -p d=5000;mpass=abc123). The password rotates after 100 new shares with a different value.',
           params: [
             { name: 'address',          type: 'path', inputType: 'text',   placeholder: 'web1p...', hint: '', required: true },
-            { name: 'ipAddress',        type: 'body', inputType: 'text',   placeholder: '1.2.3.4', hint: 'Your current IP address', required: true },
-            { name: 'paymentThreshold', type: 'body', inputType: 'number', placeholder: '0.01',    hint: 'Min payout amount (must be >= pool minimum)', required: true },
+            { name: 'password',         type: 'body', inputType: 'text',   placeholder: 'abc123',   hint: 'Your mpass= value from stratum (e.g. -p mpass=abc123)', required: true },
+            { name: 'paymentThreshold', type: 'body', inputType: 'number', placeholder: '0.01',     hint: 'Min payout amount (must be >= pool minimum)', required: true },
           ],
           buildBody: (vars) => ({
-            ipAddress: vars.ipAddress || '',
+            password: vars.password || '',
             settings: { paymentThreshold: parseFloat(vars.paymentThreshold) || 0 }
           }),
         },
